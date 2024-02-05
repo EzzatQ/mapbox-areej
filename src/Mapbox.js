@@ -13,7 +13,6 @@ mapboxgl.setRTLTextPlugin(
 );
 function Mapbox () {
     const mapContainerRef = useRef(null);
-    const [unusedMap, setMap] = useState();
     const [long, setLong] = useState(34.8857854135293);
     const [lat, setLat] = useState(31.7649922256824);
     const [zoom, setZoom] = useState(10.7543083009908);
@@ -39,11 +38,67 @@ function Mapbox () {
                 setZoom(map.getZoom());
             });
 
+            // add sources
             map.addSource('river', {
                 type: 'geojson',
                 data: river
             });
+            map.addSource('well', {
+                type: 'geojson',
+                data: well
+            });
+            map.addSource('cities', {
+                'type': 'geojson',
+                'data': cities
+            });
 
+            // Handle Well
+            map.addLayer({
+                id: 'well-fill',
+                type: 'fill',
+                source: 'well',
+                paint: {
+                    "fill-color": "#6e0000",
+                    'fill-opacity': [
+                        'case',
+                        ['boolean', ['feature-state', 'hover'], false],
+                        1,
+                        0.5
+                    ]
+                }
+            })
+
+            map.addLayer({
+                id: 'well-outline',
+                type: 'line',
+                source: 'well',
+                paint: {
+                    "line-color": "#6e0000",
+                    "line-width": 4
+                }
+            })
+
+            map.on('click', 'well-fill', (e) => {
+                console.log('clicked well: ', e);
+                window.location.href ='https://facebook.com';
+            });
+
+            map.on('mousemove', 'well-fill', (e) => {
+                map.getCanvas().style.cursor = 'pointer';
+                map.setFeatureState(
+                    { source: 'well', id: 'well-fill' },
+                    { hover: true }
+                );
+            });
+            map.on('mouseleave', 'well-fill', (e) => {
+                map.getCanvas().style.cursor = 'auto';
+                map.setFeatureState(
+                    { source: 'well', id: 'well-fill' },
+                    { hover: false }
+                );
+            });
+
+            // Handle River
             map.addLayer({
                 id: 'river',
                 type: 'line',
@@ -85,55 +140,18 @@ function Mapbox () {
                 );
             });
             map.on('click', 'river', (e) => {
-                console.log('clicked: ', e);
+                console.log('clicked river: ', e);
+                window.location.href ='https://amazon.com';
             });
 
 
-            map.addSource('well', {
-                type: 'geojson',
-                data: well
-            });
 
-            map.addLayer({
-                id: 'well',
-                type: 'fill',
-                source: 'well',
-                paint: {
-                    "fill-color": "#6e0000",
-                    "fill-opacity": [
-                        "case",
-                        ["boolean", ["feature-state", "hover"], false],
-                        0.7,
-                        0.3
-                    ],
-                }
-            })
-
-            map.on('mousemove', 'well', (e) => {
-                map.getCanvas().style.cursor = 'pointer';
-                map.setFeatureState(
-                    { source: 'well', id: 'well' },
-                    { hover: true }
-                );
-            });
-            map.on('mouseleave', 'well', (e) => {
-                map.getCanvas().style.cursor = 'auto';
-                map.setFeatureState(
-                    { source: 'well', id: 'well' },
-                    { hover: false }
-                );
-            });
-
+            // Handle Cities
             map.loadImage(
                 '/home-icon.png',
                 (error, image) => {
                     if (error) throw error;
                     map.addImage('custom-marker', image);
-
-                    map.addSource('cities', {
-                        'type': 'geojson',
-                        'data': cities
-                    });
 
                     map.addLayer({
                         'id': 'cities',
@@ -152,10 +170,18 @@ function Mapbox () {
                             'text-anchor': 'top'
                         }
                     })
+
+                    map.on('click', 'cities', (e) => {
+                        console.log('clicked city: ', e);
+                        window.location.href ='https://apple.com';
+                    });
+                    map.on('mouseenter', 'cities', (e) => {
+                        map.getCanvas().style.cursor = 'pointer';
+                    });
+                    map.on('mouseleave', 'cities', (e) => {
+                        map.getCanvas().style.cursor = 'auto';
+                    });
                 });
-
-
-            setMap(map);
         });
 
 
